@@ -1,10 +1,22 @@
 package com.engthesis.demo.dao.entity;
 
-import javax.persistence.*;
-import javax.validation.constraints.Email;
-import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
+import javax.persistence.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import javax.validation.constraints.Size;
+import java.util.Set;
+import static com.engthesis.demo.validator.ValidatorRegex.*;
+import static com.engthesis.demo.validator.ErrorMessages.*;
+
+
+@Data
 @Entity
+@AllArgsConstructor
 @Table(name = "Users", indexes = @Index(columnList = "email"))
 public class User {
 
@@ -12,90 +24,36 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @NotNull(message = EMPTY_NAME_MESSAGE)
+    @Size(min= 2, max =30, message = WRONG_NAME_MESSAGE )
+    @Pattern(regexp = NAME_VALIDATION_REGEXT, message = "Name is Invalid")
     private String name;
+    @NotNull(message = EMPTY_SURNAME_MESSAGE)
+    @Size(min= 2, max =30, message = WRONG_SURNAME_MESSAGE )
+    @Pattern(regexp = NAME_VALIDATION_REGEXT, message = WRONG_SURNAME_MESSAGE)
     private String surname;
+    @NotNull(message = EMPTY_PASSWORD_MESSAGE)
+    @Pattern(regexp = PASSWORD_VALIDATION_REGEX, message = WRONG_PASSWORD_MESSAGE)
     private String password;
-    @Email
+    @Column(unique = true)
+    @NotNull(message = EMPTY_EMAIL_MESSAGE)
+    @Pattern(regexp = EMAIL_VALIDATION_REGEX, message = WRONG_EMAIL_MESSAGE)
     private String email;
+    @NotNull(message = EMPTY_PHONE_NUMBER_MESSAGE)
+    @Pattern(regexp = PHONE_NUMBER_VALIDATION_REGEX, message = WRONG_PHONE_NUMBER_MESSAGE)
     private String number;
 
     private String role;
     @OneToMany(cascade = CascadeType.REMOVE, orphanRemoval = true)
     private Set<Announcement> annoucments;
 
-
-    public User(){}
-
-    public User(String name, String surname, String password, @Email String email, String number) {
+    public User(){this.role="ROLE_USER";}
+    public User(String name, String surname, String password,String email, String number) {
         this.name = name;
         this.surname = surname;
         this.password = password;
         this.email = email;
         this.number = number;
         this.role="ROLE_USER";
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public void setSurname(String surrname) {
-        this.surname = surrname;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String passowrd) {
-        this.password = passowrd;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getNumber() {
-        return number;
-    }
-
-    public void setNumber(String number) {
-        this.number = number;
-    }
-
-    public Set<Announcement> getAnnoucments() {
-        return annoucments;
-    }
-
-    public void setAnnoucments(Set<Announcement> annoucments) {
-        this.annoucments = annoucments;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
     }
 }

@@ -2,15 +2,22 @@ package com.engthesis.demo.manager;
 
 
 import com.engthesis.demo.dao.*;
-import com.engthesis.demo.dao.entity.Adress;
 import com.engthesis.demo.dao.entity.User;
 import com.engthesis.demo.exception.*;
-import com.engthesis.demo.repository.AdressRepository;
 import com.engthesis.demo.repository.UserRepository;
+import com.engthesis.demo.validator.availability.User.UserEmailAvailability;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UserManager {
@@ -18,14 +25,14 @@ public class UserManager {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtManager jwtManager;
-
+    private final UserEmailAvailability userEmailAvailability;
 
     @Autowired
-    public UserManager(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtManager jwtManager) {
+    public UserManager(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtManager jwtManager, UserEmailAvailability userEmailAvailability) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtManager = jwtManager;
-
+        this.userEmailAvailability = userEmailAvailability;
     }
 
     public void validateLoginData(LoginData userInput) throws InvalidInputException {
@@ -33,6 +40,7 @@ public class UserManager {
                 userInput.getEmail().isEmpty() || userInput.getPassword().isEmpty())
             throw new InvalidInputException();
     }
+
     public User getUserByEmail(String email) throws EmailExistException {
         return userRepository.findByEmail(email).orElseThrow(EmailExistException::new);
 
@@ -42,22 +50,23 @@ public class UserManager {
         return userRepository.findUserData(email).orElseThrow(EmailExistException::new);
     }
 
-    public User getUserById(Long Id) throws UserNotFoundException {
-        return userRepository.findById(Id).orElseThrow(UserNotFoundException::new);
-    }
-
     public User getLoggedUser() throws EmailExistException {
         String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
         return getUserByEmail(email);
     }
 
-    public void addUser(RegisterData inputData) throws RuntimeException {
-        userRepository.save(new User(inputData.getName(),
+    public void addUser(RegisterData inputData)  {
+        User user= new User(inputData.getName(),
                 inputData.getSurname(),
-                hashPassword(inputData.getPassword()),
+                inputData.getPassword(),
                 inputData.getEmail(),
-                inputData.getPhone()));
-
+                inputData.getPhone());
+        List<String> messages= validateRegisterData(user);
+        if(!messages.isEmpty() ){
+            throw new InvalidInputException(messages.toString());
+        }
+        user.setPassword(hashPassword(inputData.getPassword()));
+        userRepository.save(user);
     }
 
     public Boolean verifyPassword(String password, String hash) throws InvalidPasswordException {
@@ -65,52 +74,26 @@ public class UserManager {
         return true;
     }
 
-    public void checkIfMailExist(String email) throws EmailExistException {
-        if (userRepository.findByEmail(email).isPresent())
-            throw new EmailExistException();
-    }
-
-    public LoginData getUserDataIfExist(String email) throws EmailExistException {
-        return userRepository.findUserPassword(email).orElseThrow(EmailExistException::new);
+    public LoginData getUserDataIfExist(String email) {
+        return userRepository.findUserPassword(email).orElseThrow(UserNotFoundException::new);
     }
     private String hashPassword(String password) {
         return passwordEncoder.encode(password);
     }
 
-    public void validateRegistrationData(RegisterData inputData) throws InvalidInputException {
-        if (inputData.getEmail() == null || inputData.getEmail().length() < 5 || !inputData.getEmail().contains("@") ||
-                inputData.getName() == null || inputData.getName().length() < 2 ||
-                inputData.getName().length() > 40 || !inputData.getName().matches("[a-zA-Z]+") ||
-                inputData.getSurname() == null || inputData.getSurname().length() < 2 ||
-                inputData.getSurname().length() > 40 || !inputData.getSurname().matches("[a-zA-Z]+") ||
-                inputData.getPassword() == null || inputData.getPassword().length() < 6)
-            throw new InvalidInputException();
-    }
-
     public void updateUserData(UserData userInput) throws UserNotFoundException{
     String email= SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
     User user= userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
-        if( userInput.getName() == null || userInput.getName().equals("") )
-            user.setName(user.getName());
-        else if( userInput.getName().length() > 2 ||
-                        userInput.getName().length() < 40
-                        || userInput.getName().matches("[a-zA-Z]+"))
-            user.setName(userInput.getName());
-        if( userInput.getSurname() == null|| userInput.getSurname().equals(""))
-            user.setSurname(user.getSurname());
-        else if (userInput.getSurname().length() > 2 ||
-                        userInput.getSurname().length() < 40 ||
-                        userInput.getSurname().matches("[a-zA-Z]+"))
-            user.setSurname(userInput.getSurname());
-        if( userInput.getEmail() == null || userInput.getEmail().equals(""))
-            user.setEmail(user.getEmail());
-        else if( userInput.getEmail().length() > 5 ||
-                        userInput.getEmail().contains("@"))
-            user.setEmail(userInput.getEmail());
-        if( userInput.getNumber() == null || userInput.getNumber().equals(""))
-            user.setNumber(user.getNumber());
-        else
-            user.setNumber(userInput.getNumber());
+        List<String> messages= validateData(userInput);
+        if(messages.isEmpty()){
+            throw new InvalidInputException(messages.toString());
+        }
+
+        user.setName(userInput.getName());
+        user.setSurname(userInput.getSurname());
+        user.setEmail(userInput.getEmail());
+        user.setNumber(userInput.getNumber());
+
         userRepository.save(user);
     }
 
@@ -127,17 +110,42 @@ public class UserManager {
         verifyPassword(userInput.getOldPassword(), user.getPassword());
         user.setPassword(hashPassword(userInput.getNewPassword()));
         userRepository.save(user);
+
     }
 
-    public TokenData login(LoginData userInput)  {
-        this.validateLoginData(userInput);
+    public TokenData login(LoginData userInput) {
+        List<String> messages=validateData(userInput);
+        if(!messages.isEmpty())
+            throw new InvalidInputException(messages.toString());
         LoginData loginData;
         loginData = this.getUserDataIfExist(userInput.getEmail());
         this.verifyPassword(userInput.getPassword(), loginData.getPassword());
         String token = jwtManager.sign(loginData.getEmail(),loginData.getRole());
         UserData userData = userRepository.findTokenUserData(loginData.getEmail()).orElseThrow(ObjectNotFoundException::new);
         return new TokenData(token, userData);
+    }
 
+    private List<String> validateRegisterData(User user){
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+        List<String> messages= new ArrayList<>();
+        Set<ConstraintViolation<User>> errors = validator.validate(user);
+        for (ConstraintViolation<User> violation : errors) {
+            messages.add(violation.getMessage());
+        }
+        messages.add(userEmailAvailability.validate(user));
+        return messages.stream().filter(Objects::nonNull).collect(Collectors.toList());
+    }
+
+    private <T> List<String> validateData(T value){
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        Validator validator = factory.getValidator();
+        List<String> messages= new ArrayList<>();
+        Set<ConstraintViolation<T>> errors = validator.validate(value);
+        for (ConstraintViolation<T> violation : errors) {
+            messages.add(violation.getMessage());
+        }
+        return messages.stream().filter(Objects::nonNull).collect(Collectors.toList());
     }
 
 }

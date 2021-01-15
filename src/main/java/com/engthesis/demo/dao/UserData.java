@@ -1,11 +1,21 @@
 package com.engthesis.demo.dao;
 
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper = false)
+@AllArgsConstructor
 public class UserData {
     private String email;
     private String name;
     private String surname;
     private String number;
     private String role;
+
+
     public UserData() {
     }
 
@@ -21,43 +31,4 @@ public class UserData {
         this.number = number;
     }
 
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getSurname() {
-        return surname;
-    }
-
-    public void setSurname(String surname) {
-        this.surname = surname;
-    }
-
-    public String getNumber() {
-        return number;
-    }
-
-    public void setNumber(String phone) {
-        this.number = phone;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
 }

@@ -1,21 +1,16 @@
 package com.engthesis.demo.dao;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper = false)
+@AllArgsConstructor
 public class DeleteAnnoData {
 
     private Long id;
 
-    public DeleteAnnoData() {
-    }
+    public DeleteAnnoData() {}
 
-    public DeleteAnnoData(Long id) {
-        this.id = id;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 }

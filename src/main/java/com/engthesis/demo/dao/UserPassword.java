@@ -1,28 +1,15 @@
 package com.engthesis.demo.dao;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Data
+@EqualsAndHashCode(callSuper = false)
+@AllArgsConstructor
 public class UserPassword {
 
     private String oldPassword;
     private String newPassword;
 
-    public UserPassword(String oldPassword, String newPassword){
-        this.newPassword=newPassword;
-        this.oldPassword=oldPassword;
-    };
-
-    public String getOldPassword() {
-        return oldPassword;
-    }
-
-    public void setOldPassword(String oldPassword) {
-        this.oldPassword = oldPassword;
-    }
-
-    public String getNewPassword() {
-        return newPassword;
-    }
-
-    public void setNewPassword(String newPassword) {
-        this.newPassword = newPassword;
-    }
 }
