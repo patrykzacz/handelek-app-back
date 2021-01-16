@@ -9,8 +9,13 @@ import com.engthesis.demo.exception.EmailExistException;
 import com.engthesis.demo.exception.ObjectNotFoundException;
 import com.engthesis.demo.manager.AdressManager;
 import com.engthesis.demo.manager.UserManager;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
+import io.swagger.annotations.Authorization;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.PermissionDeniedDataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +39,11 @@ public class AdressController {
         this.userManager = userManager;
     }
 
+    @ApiOperation(value = "Change adress data", authorizations = {@Authorization(value = "authkey")})
+    @ApiResponses(value = {@ApiResponse(code = 200, message = "Successfully updated!"),
+            @ApiResponse(code = 400, message = "\"Invalid input!\""),
+            @ApiResponse(code = 401, message = "Permission Denied"),
+            @ApiResponse(code = 500, message = "Server Error!")})
     @PutMapping(value = "/adressPatch")
     public ResponseTransfer adress(
             @RequestBody AdressData inputData) throws ObjectNotFoundException, InterruptedException, URISyntaxException, JSONException, IOException {
@@ -43,16 +53,21 @@ public class AdressController {
     }
 
 
-    @CrossOrigin(origins = "http://localhost:3000")
+    @ApiOperation(value = "Get logged user adress", authorizations = {@Authorization(value = "authkey")})
+    @ApiResponses(value = { @ApiResponse(code = 200, message = "Data downloaded Succesfully"),
+            @ApiResponse( code = 404, message = "Anno Does Not Exist"),
+            @ApiResponse(code = 401, message = "Permission Denied")})
     @GetMapping(value ="/adress")
-    public Optional<Adress> getAdress() throws EmailExistException {
+    public Optional<Adress> getAdress() throws EmailExistException, PermissionDeniedDataAccessException {
             String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
             User user =userManager.getUserByEmail(email);
             return adressManager.getAdressUser(user);
 
     }
 
-    @CrossOrigin(origins = "http://localhost:3000")
+    @ApiOperation(value = "Get All Markers")
+    @ApiResponses(value = {@ApiResponse(code = 404, message = "Object Not Found"),
+            @ApiResponse(code = 500, message = "Server Error!")})
     @GetMapping(value ="/markers")
     public List<Marker> getMarkers() throws ObjectNotFoundException {
             return adressManager.allGeoAdresses();
