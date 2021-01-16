@@ -9,14 +9,14 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.persistence.EntityNotFoundException;
 
 import java.time.LocalDateTime;
 
-import static org.springframework.http.HttpStatus.BAD_REQUEST;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.*;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
@@ -67,6 +67,33 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         ApiError apiError = new ApiError(BAD_REQUEST);
         apiError.setTimestamp(LocalDateTime.now());
         apiError.setMessage(ex.getMessage());
+        return buildResponseEntity(apiError);
+    }
+
+    @ExceptionHandler(InvalidPasswordException.class)
+    protected ResponseEntity<Object> invalidPasswordException(
+            InvalidPasswordException ex) {
+        ApiError apiError = new ApiError(BAD_REQUEST);
+        apiError.setTimestamp(LocalDateTime.now());
+        apiError.setMessage(ex.getMessage());
+        return buildResponseEntity(apiError);
+    }
+
+    @ExceptionHandler(PasswordMatchedException.class)
+    protected ResponseEntity<Object> passwordMatchedException(
+            PasswordMatchedException ex) {
+        ApiError apiError = new ApiError(BAD_REQUEST);
+        apiError.setTimestamp(LocalDateTime.now());
+        apiError.setMessage(ex.getMessage());
+        return buildResponseEntity(apiError);
+    }
+
+    @ExceptionHandler(ResponseStatusException.class)
+    protected ResponseEntity<Object> responseStatusException(
+            ResponseStatusException ex) {
+        ApiError apiError = new ApiError(INTERNAL_SERVER_ERROR);
+        apiError.setTimestamp(LocalDateTime.now());
+        apiError.setMessage("Token creating Error");
         return buildResponseEntity(apiError);
     }
 }

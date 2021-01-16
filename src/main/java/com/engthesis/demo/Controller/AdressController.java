@@ -6,6 +6,7 @@ import com.engthesis.demo.dao.ResponseTransfer;
 import com.engthesis.demo.dao.entity.Adress;
 import com.engthesis.demo.dao.entity.User;
 import com.engthesis.demo.exception.EmailExistException;
+import com.engthesis.demo.exception.ObjectNotFoundException;
 import com.engthesis.demo.manager.AdressManager;
 import com.engthesis.demo.manager.UserManager;
 import org.json.JSONException;
@@ -26,31 +27,17 @@ public class AdressController {
 
     private final AdressManager adressManager;
     private final UserManager userManager;
-    @Autowired
 
+    @Autowired
     public AdressController(AdressManager adressManager, UserManager userManager) {
         this.adressManager = adressManager;
         this.userManager = userManager;
     }
 
-    @PatchMapping(value = "/adressPatch")
+    @PutMapping(value = "/adressPatch")
     public ResponseTransfer adress(
-            @RequestBody AdressData inputData) {
-        try {
+            @RequestBody AdressData inputData) throws ObjectNotFoundException, InterruptedException, URISyntaxException, JSONException, IOException {
                 adressManager.updateAdress(inputData);
-        } catch (EmailExistException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad input", ex);
-        } catch (RuntimeException ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Adress cannot be registered!");
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
         return new ResponseTransfer("Successfully updated!");
 
     }
@@ -58,24 +45,18 @@ public class AdressController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping(value ="/adress")
-    public Optional<Adress> getAdress() {
-        try {
+    public Optional<Adress> getAdress() throws EmailExistException {
             String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
             User user =userManager.getUserByEmail(email);
             return adressManager.getAdressUser(user);
-        } catch (EmailExistException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad request");
-        }
+
     }
 
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping(value ="/markers")
-    public List<Marker> getMarkers() {
-        try {
+    public List<Marker> getMarkers() throws ObjectNotFoundException {
             return adressManager.allGeoAdresses();
-        } catch (EmailExistException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad request");
-        }
+
     }
 
 

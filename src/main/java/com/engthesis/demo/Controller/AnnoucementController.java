@@ -4,6 +4,7 @@ import com.engthesis.demo.dao.*;
 import com.engthesis.demo.dao.entity.Announcement;
 import com.engthesis.demo.exception.EmailExistException;
 import com.engthesis.demo.exception.InvalidInputException;
+import com.engthesis.demo.exception.ObjectNotFoundException;
 import com.engthesis.demo.manager.AnnoucementManager;
 import com.engthesis.demo.manager.UserManager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,56 +32,40 @@ public class AnnoucementController {
 
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping(value = "/add")
-    public ResponseTransfer register(
-            @RequestBody AnnoData inputData) {
-        try {
+    public ResponseTransfer add(
+            @RequestBody AnnoData inputData){
             annoucementManager.addAnno(inputData);
-        } catch (InvalidInputException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid input!", ex);
-        }
         return new ResponseTransfer("Successfully created!");
 
     }
 
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping(value ="/useranno")
-    public List<AnnoData> getAnno() {
-        try {
+    public List<AnnoData> getAnno() throws ObjectNotFoundException {
             return annoucementManager.userAnno();
-        } catch (EmailExistException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad request");
-        }
+
     }
 
     @CrossOrigin(origins = "http://localhost:3000")
     @DeleteMapping(value ="/deleteanno")
-    public ResponseTransfer delete(@RequestBody DeleteAnnoData inputData) {
-        try {
+    public ResponseTransfer delete(@RequestBody DeleteAnnoData inputData) throws ObjectNotFoundException {
             annoucementManager.deletebyId(inputData);
-        } catch (InvalidInputException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid input!", ex);
-        }
         return new ResponseTransfer("Successfully deleted!");
 
     }
 
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping(value ="/userannos")
-    public List<AnnoData> getUserAnno(@RequestParam Long id) {
-        try {
+    public List<AnnoData> getUserAnno(@RequestParam Long id) throws ObjectNotFoundException {
+
             return annoucementManager.getUserAnno(id);
-        } catch (EmailExistException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad request");
-        }
+
     }
 
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping(value ="/allanno")
-    public List<AnnoData> getAll() {
-        try {
+    public List<AnnoData> getAll() throws ObjectNotFoundException {
             return annoucementManager.getall();
-        } catch (EmailExistException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad request");
-        }
+
     }
 }

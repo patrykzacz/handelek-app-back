@@ -4,6 +4,7 @@ import com.engthesis.demo.dao.AnnoData;
 import com.engthesis.demo.dao.DeleteAnnoData;
 import com.engthesis.demo.dao.entity.Announcement;
 import com.engthesis.demo.dao.entity.User;
+import com.engthesis.demo.exception.ObjectNotFoundException;
 import com.engthesis.demo.repository.AnnoucementRepository;
 import com.engthesis.demo.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,12 +51,13 @@ public class AnnoucementManager {
     }
 
     public void deletebyId(DeleteAnnoData inputData){
-        Announcement anno= annoucementRepository.findById(inputData.getId()).orElseThrow();
-
+        Announcement anno= annoucementRepository.findById(inputData.getId()).orElseThrow(ObjectNotFoundException::new);
         annoucementRepository.delete(anno);
     }
 
     public List<AnnoData> getUserAnno(Long id){
+        if(userRepository.findById(id).isEmpty())
+            throw new ObjectNotFoundException();
         return annoucementRepository.findByUserId(id);
     }
 

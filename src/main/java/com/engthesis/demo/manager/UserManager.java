@@ -35,11 +35,6 @@ public class UserManager {
         this.userEmailAvailability = userEmailAvailability;
     }
 
-    public void validateLoginData(LoginData userInput) throws InvalidInputException {
-        if (userInput.getEmail() == null || userInput.getPassword() == null ||
-                userInput.getEmail().isEmpty() || userInput.getPassword().isEmpty())
-            throw new InvalidInputException();
-    }
 
     public User getUserByEmail(String email) throws EmailExistException {
         return userRepository.findByEmail(email).orElseThrow(EmailExistException::new);
@@ -70,7 +65,7 @@ public class UserManager {
     }
 
     public Boolean verifyPassword(String password, String hash) throws InvalidPasswordException {
-        if (!passwordEncoder.matches(password, hash)) throw new InvalidPasswordException();
+        if (!passwordEncoder.matches(password, hash)) throw new InvalidPasswordException("Old password doesn't match");
         return true;
     }
 
@@ -81,11 +76,11 @@ public class UserManager {
         return passwordEncoder.encode(password);
     }
 
-    public void updateUserData(UserData userInput) throws UserNotFoundException{
+    public void updateUserData(UserData userInput){
     String email= SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
     User user= userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
         List<String> messages= validateData(userInput);
-        if(messages.isEmpty()){
+        if(!messages.isEmpty()){
             throw new InvalidInputException(messages.toString());
         }
 
@@ -97,15 +92,16 @@ public class UserManager {
         userRepository.save(user);
     }
 
-    public void changePassword(UserPassword userInput) throws InvalidPasswordException, PasswordMatchedException {
-        if (userInput.getOldPassword() == null || userInput.getNewPassword() == null
-                || userInput.getNewPassword().length() < 6 || userInput.getOldPassword().length() < 6
-                || userInput.getNewPassword().length() > 32 || userInput.getOldPassword().length() > 32)
-            throw new InvalidInputException();
+    public void changePassword(UserPassword userInput){
         String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
         User user = userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
         if (userInput.getNewPassword().equals(userInput.getOldPassword())) {
             throw new PasswordMatchedException();
+        }
+
+        List<String> messages= validateData(userInput);
+        if(!messages.isEmpty()){
+            throw new InvalidInputException(messages.toString());
         }
         verifyPassword(userInput.getOldPassword(), user.getPassword());
         user.setPassword(hashPassword(userInput.getNewPassword()));
@@ -119,7 +115,7 @@ public class UserManager {
             throw new InvalidInputException(messages.toString());
         LoginData loginData;
         loginData = this.getUserDataIfExist(userInput.getEmail());
-        this.verifyPassword(userInput.getPassword(), loginData.getPassword());
+        verifyPassword(userInput.getPassword(), loginData.getPassword());
         String token = jwtManager.sign(loginData.getEmail(),loginData.getRole());
         UserData userData = userRepository.findTokenUserData(loginData.getEmail()).orElseThrow(ObjectNotFoundException::new);
         return new TokenData(token, userData);

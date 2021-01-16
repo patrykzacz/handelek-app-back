@@ -4,19 +4,29 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 @Configuration
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private static final String[] AUTH_WHITELIST = {
             //Api
 
-            "/api/user/login*",
-            "/api/user/register*",
-            "/api/user/hello*",
-            "/api/user/test*",
-            "/api/adress/markers*",
-            "/api/anno/userannos*",
-            "/api/anno/allanno*"
+            "/api/user/login",
+            "/api/user/register",
+            "/api/user/hello",
+            "/api/user/test",
+            "/api/adress/markers",
+            "/api/anno/userannos",
+            "/api/anno/allanno",
+            //Swagger paths
+            "/api-docs.yaml",
+            "/v3/api-docs/**",
+            "/api-docs/**",
+            "/swagger-resources/**",
+            "/swagger-ui/**",
+            "/swagger-ui.html",
+            "/swagger-ui/index.html**",
+            "/webjars/springfox-swagger-ui/**",
             // other public endpoints of your API may be appended to this array
     };
 

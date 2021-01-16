@@ -6,6 +6,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.engthesis.demo.exception.WrongTokenException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -31,25 +32,18 @@ public class JwtManager {
         verifier = JWT.require(algorithm).build();
     }
 
-    public String sign(String email,String role) {
-        try {
+    public String sign(String email,String role) throws ResponseStatusException {
             return JWT.create()
                     .withClaim("email", email)
                     .withClaim("role", role)
                     .withExpiresAt(Date.from(ZonedDateTime.now().plusDays(7).toInstant()))
                     .sign(algorithm);
-        } catch (JWTCreationException ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Error with creating token!");
-        }
     }
 
 
-    public DecodedJWT verify(String token) throws JWTVerificationException {
-        try {
+    public DecodedJWT verify(String token) throws JWTVerificationException, WrongTokenException {
             return verifier.verify(token);
-        } catch (JWTVerificationException e) {
-            throw new com.ustudent.resquod.exception.WrongTokenException();
-        }
+
     }
 
 }

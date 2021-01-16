@@ -6,6 +6,7 @@ import com.engthesis.demo.dao.Marker;
 import com.engthesis.demo.dao.entity.Adress;
 import com.engthesis.demo.dao.entity.User;
 import com.engthesis.demo.exception.AdressNotFoundException;
+import com.engthesis.demo.exception.ObjectNotFoundException;
 import com.engthesis.demo.exception.UserNotFoundException;
 import com.engthesis.demo.repository.AdressRepository;
 import com.engthesis.demo.repository.UserRepository;
@@ -24,7 +25,9 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class AdressManager {
@@ -45,15 +48,14 @@ public class AdressManager {
     public void addCleanAdress(String email){
         User user= userRepository.findByEmail(email).orElseThrow(UserNotFoundException::new);
         Adress adress = new Adress();
-        adress.setLat("0");
-        adress.setLang("0");
+        adress.setLat(null);
+        adress.setLang(null);
         adress.setUser(user);
         adressRepository.save(adress);
     }
-    public void updateAdress(AdressData inputData) throws InterruptedException, URISyntaxException, JSONException, IOException {
+    public void updateAdress(AdressData inputData) throws InterruptedException, URISyntaxException, JSONException, IOException, ObjectNotFoundException {
         User user= userManager.getLoggedUser();
-
-        Adress adress = adressRepository.findById(user.getId()).orElseThrow();
+        Adress adress = adressRepository.findById(user.getId()).orElseThrow(ObjectNotFoundException::new);
         adress.setLine_1(inputData.getLine_1());
         adress.setLine_2(inputData.getLine_2());
         adress.setLine_3(inputData.getLine_3());
@@ -74,7 +76,11 @@ public class AdressManager {
     }
 
     public List<Marker> allGeoAdresses(){
-        return adressRepository.allMarkers();
+
+        return adressRepository.allMarkers().stream()
+                .filter(m->Objects.nonNull(m.getLat()))
+                .filter(m->Objects.nonNull(m.getLang()))
+                .collect(Collectors.toList());
     }
 
     public List<String> getGeoCord(String query ) throws IOException, InterruptedException, URISyntaxException, JSONException {

@@ -3,7 +3,7 @@ package com.engthesis.demo.config;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.engthesis.demo.manager.JwtManager;
-import com.ustudent.resquod.exception.WrongTokenException;
+import com.engthesis.demo.exception.WrongTokenException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,8 +32,8 @@ public class JwtFilter extends BasicAuthenticationFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException {
-        try {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws IOException, WrongTokenException, ServletException {
             String header = request.getHeader("authorization");
 
             if (header == null || !header.startsWith("Bearer "))
@@ -48,11 +48,7 @@ public class JwtFilter extends BasicAuthenticationFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 chain.doFilter(request, response);
             }
-        } catch (WrongTokenException e) {
-            response.sendError(HttpStatus.UNAUTHORIZED.value(), "Wrong or empty token!");
-        } catch (ServletException e) {
-            response.sendError(HttpStatus.INTERNAL_SERVER_ERROR.value(), "ServletException");
-        }
+
     }
 
     private UsernamePasswordAuthenticationToken getAuthentication(String token) {

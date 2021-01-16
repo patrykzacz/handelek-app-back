@@ -28,13 +28,17 @@ public class UserController {
         this.userManager = userManager;
         this.adressManager = adressManager;
     }
+
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping(value ="/login")
-    public TokenData login(
+    public ResponseLoginTransfer  login(
             @RequestBody LoginData userInput)throws InvalidInputException
-            , UserNotFoundException {
-            return userManager.login(userInput);
+            , UserNotFoundException ,ResponseStatusException {
+            return new ResponseLoginTransfer("Successfully Logged",
+                    userManager.login(userInput));
     }
+
+
     @CrossOrigin(origins = "http://localhost:3000")
     @PostMapping(value = "/register")
     public ResponseTransfer register(
@@ -44,38 +48,24 @@ public class UserController {
         return new ResponseTransfer("Successfully created!");
 
     }
+
     @CrossOrigin(origins = "http://localhost:3000")
     @GetMapping(value ="/user")
     public UserData getUser() throws EntityNotFoundException {
-        try {
             String email = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
             return userManager.getUser(email);
-        } catch (EmailExistException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Bad request");
-        }
-    }
-    @PatchMapping(value = "/password")
-    public ResponseTransfer changePassowrd(
-            @RequestBody UserPassword inputData) {
-        try {
-            userManager.changePassword(inputData);
-        } catch (InvalidInputException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password too short or too long!", ex); }
-        catch (InvalidPasswordException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password don't match!", ex);
-        } catch (PasswordMatchedException ex) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Password Canno't be the same!", ex);
-        } catch (RuntimeException ex) {
-            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Password Canno't be changed!", ex);
-        }
 
+    }
+    @PutMapping(value = "/password")
+    public ResponseTransfer changePassowrd(
+            @RequestBody UserPassword inputData) throws InvalidPasswordException, PasswordMatchedException {
+            userManager.changePassword(inputData);
         return new ResponseTransfer("Successfully changed!");
     }
 
-    @PatchMapping(value = "/userPatch")
+    @PutMapping(value = "/userPatch")
     public ResponseTransfer changeUserData(
             @RequestBody UserData userInput) throws InvalidInputException, EmailExistException {
-
             userManager.updateUserData(userInput);
         return new ResponseTransfer("Successfully updated!");
     }
