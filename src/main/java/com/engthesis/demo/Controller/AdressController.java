@@ -9,10 +9,7 @@ import com.engthesis.demo.exception.EmailExistException;
 import com.engthesis.demo.exception.ObjectNotFoundException;
 import com.engthesis.demo.manager.AdressManager;
 import com.engthesis.demo.manager.UserManager;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-import io.swagger.annotations.Authorization;
+import io.swagger.annotations.*;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.PermissionDeniedDataAccessException;
@@ -25,6 +22,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/adress")
@@ -71,6 +69,18 @@ public class AdressController {
     @GetMapping(value ="/markers")
     public List<Marker> getMarkers() throws ObjectNotFoundException {
             return adressManager.allGeoAdresses();
+
+    }
+
+    @ApiOperation(value = "Get Group Markers")
+    @ApiResponses(value = {@ApiResponse(code = 404, message = "Object Not Found"),
+            @ApiResponse(code = 500, message = "Server Error!")})
+    @GetMapping(value ="/groupMarkers/{id}")
+    public Set<Marker> getGroupMakers(
+            @ApiParam(value = "Required group id", required = true)
+            @PathVariable Long id
+    ) throws ObjectNotFoundException {
+        return adressManager.groupMarkers(id);
 
     }
 

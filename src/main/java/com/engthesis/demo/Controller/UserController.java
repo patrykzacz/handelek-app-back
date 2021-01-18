@@ -86,10 +86,7 @@ public class UserController {
     }
 
 
-    @ApiOperation(value = "Change user data", authorizations = {@Authorization(value = "authkey")})
-    @ApiResponses(value = {@ApiResponse(code = 200, message = "Successfully updated!"),
-            @ApiResponse(code = 400, message = "\"Invalid input!\" or \"Invalid password!\""),
-            @ApiResponse(code = 500, message = "Server Error!")})
+
     @PutMapping(value = "/userPatch")
     public ResponseTransfer changeUserData(
             @ApiParam(value = "Required email, name, surname, password, phone number", required = true)

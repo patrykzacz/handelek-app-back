@@ -1,14 +1,12 @@
 package com.engthesis.demo.dao.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
+import java.util.HashSet;
 import java.util.Set;
 import static com.engthesis.demo.validator.ValidatorRegex.*;
 import static com.engthesis.demo.validator.ErrorMessages.*;
@@ -43,9 +41,21 @@ public class User {
     @Pattern(regexp = PHONE_NUMBER_VALIDATION_REGEX, message = WRONG_PHONE_NUMBER_MESSAGE)
     private String number;
 
+
+    @ManyToMany(fetch= FetchType.LAZY, cascade = CascadeType.ALL)
+    @EqualsAndHashCode.Exclude @ToString.Exclude
+    @JoinTable(
+            name = "group_member",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "group_id"))
+    Set<Group> userGroups;
+
     private String role;
     @OneToMany(cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @EqualsAndHashCode.Exclude @ToString.Exclude
     private Set<Announcement> annoucments;
+
+
 
     public User(){this.role="ROLE_USER";}
     public User(String name, String surname, String password,String email, String number) {

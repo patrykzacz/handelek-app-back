@@ -18,6 +18,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             "/api/adress/markers",
             "/api/anno/userannos",
             "/api/anno/allanno",
+            "/api/group/members/*",
+            "/api/group/group/*",
+            "/api/group/allGroups",
             //Swagger paths
             "/api-docs.yaml",
             "/v3/api-docs/**",
@@ -44,6 +47,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/anno/add").hasRole("USER")
                 .antMatchers("/api/anno/useranno").hasRole("USER")
                 .antMatchers("/api/anno/deleteanno").hasRole("USER")
+                .antMatchers("/api/anno/groupanno/*").hasRole("USER")
+                .antMatchers("/api/group/group").hasRole("USER")
+                .antMatchers("/api/group/joining/*").hasRole("USER")
                 .and()
                 .addFilter(new JwtFilter(authenticationManager()))
                 .csrf().disable();;

@@ -21,6 +21,10 @@ public interface AdressRepository extends JpaRepository<Adress, Long> {
             "FROM  Adress a where a.user.id= ?1")
     Optional<Adress> findByUserId(Long id);
 
+    @Query(value = "SELECT new com.engthesis.demo.dao.Marker(a.lang,a.lat,u.id, u.email, u.name, u.surname, u.number) " +
+            "FROM  Adress a join User u on a.user.id= ?1 and u.id= ?1  ")
+    Optional<Marker> markerData(Long id);
+
     @Query(value = "SELECT new com.engthesis.demo.dao.Marker(a.lat, a.lang, u.id, u.email, u.name, u.surname, u.number ) " +
             "FROM  Adress a, User u where a.user.id=u.id")
     List<Marker> allMarkers();

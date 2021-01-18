@@ -3,10 +3,12 @@ package com.engthesis.demo.dao;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 @AllArgsConstructor
+@NoArgsConstructor
 public class RegisterData {
 
     private String email;
@@ -15,8 +17,6 @@ public class RegisterData {
     private String password;
     private String phone;
 
-    public RegisterData() {
-    }
 
 
 }

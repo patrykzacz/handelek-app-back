@@ -96,5 +96,23 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         apiError.setMessage("Token creating Error");
         return buildResponseEntity(apiError);
     }
+
+    @ExceptionHandler(UserAlreadyBelongtoGroup.class)
+    protected ResponseEntity<Object> userAlreadyBelongtoGroup(
+            UserAlreadyBelongtoGroup ex) {
+        ApiError apiError = new ApiError(INTERNAL_SERVER_ERROR);
+        apiError.setTimestamp(LocalDateTime.now());
+        apiError.setMessage(ex.getMessage());
+        return buildResponseEntity(apiError);
+    }
+
+    @ExceptionHandler(PermissionDenied.class)
+    protected ResponseEntity<Object> permissionDenied(
+            PermissionDenied ex) {
+        ApiError apiError = new ApiError(UNAUTHORIZED);
+        apiError.setTimestamp(LocalDateTime.now());
+        apiError.setMessage(ex.getMessage());
+        return buildResponseEntity(apiError);
+    }
 }
 

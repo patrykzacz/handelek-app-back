@@ -3,16 +3,17 @@ package com.engthesis.demo.manager;
 
 import com.engthesis.demo.dao.AdressData;
 import com.engthesis.demo.dao.Marker;
+import com.engthesis.demo.dao.UserData;
 import com.engthesis.demo.dao.entity.Adress;
+import com.engthesis.demo.dao.entity.Group;
 import com.engthesis.demo.dao.entity.User;
-import com.engthesis.demo.exception.AdressNotFoundException;
 import com.engthesis.demo.exception.ObjectNotFoundException;
 import com.engthesis.demo.exception.UserNotFoundException;
 import com.engthesis.demo.repository.AdressRepository;
+import com.engthesis.demo.repository.GroupRepository;
 import com.engthesis.demo.repository.UserRepository;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Service;
 import org.json.*;
 
@@ -23,10 +24,7 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,13 +34,17 @@ public class AdressManager {
     private final AdressRepository adressRepository;
     private final UserManager userManager;
     private final UserRepository userRepository;
+    private final GroupManager groupManager;
+    private final GroupRepository groupRepository;
 
     @Autowired
 
-    public AdressManager(AdressRepository adressRepository, UserManager userManager, UserRepository userRepository) {
+    public AdressManager(AdressRepository adressRepository, UserManager userManager, UserRepository userRepository, GroupManager groupManager, GroupRepository groupRepository) {
         this.adressRepository = adressRepository;
         this.userManager = userManager;
         this.userRepository = userRepository;
+        this.groupManager = groupManager;
+        this.groupRepository = groupRepository;
     }
 
     public void addCleanAdress(String email){
@@ -81,6 +83,18 @@ public class AdressManager {
                 .filter(m->Objects.nonNull(m.getLat()))
                 .filter(m->Objects.nonNull(m.getLang()))
                 .collect(Collectors.toList());
+    }
+
+    public Set<Marker> groupMarkers(Long id){
+        Set<UserData> users = groupManager.getGroupUsers(id);
+        Set<Marker> markers = new HashSet<>();
+        for (UserData user: users){
+            User x= userRepository.findByEmail(user.getEmail()).orElseThrow();
+            markers.add(adressRepository.markerData(x.getId()).orElseThrow(ObjectNotFoundException::new));
+        }
+        return markers.stream().filter(m->Objects.nonNull(m.getLat()))
+                .filter(m->Objects.nonNull(m.getLang()))
+                .collect(Collectors.toSet());
     }
 
     public List<String> getGeoCord(String query ) throws IOException, InterruptedException, URISyntaxException, JSONException {

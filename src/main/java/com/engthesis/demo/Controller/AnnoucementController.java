@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/anno")
@@ -87,5 +88,12 @@ public class AnnoucementController {
     public List<AnnoData> getAll() throws ObjectNotFoundException {
             return annoucementManager.getall();
 
+    }
+
+    @GetMapping(value = "/groupanno/{id}")
+    public Set<AnnoData> grupAnno(@PathVariable Long id
+    ) throws InvalidInputException, PermissionDeniedDataAccessException {
+
+        return  annoucementManager.groupAnnoucments(id);
     }
 }
